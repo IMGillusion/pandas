@@ -1139,6 +1139,11 @@ class RangeIndex(Index):
         left = self.difference(other)
         right = other.difference(self)
         result = left.union(right)
+        if not result.is_monotonic_increasing:
+            # union skips sorting when either side is empty (documented
+            # length-0 exception); symmetric_difference must still attempt
+            # to sort the result (GH#68264).
+            result = result.sort_values()
 
         if result_name is not None:
             result = result.rename(result_name)

@@ -442,6 +442,26 @@ class TestRangeIndexSetOps:
         expected = pd.Index([1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14])
         tm.assert_index_equal(result, expected, exact=True)
 
+    def test_symmetric_difference_empty_other_descending(self):
+        # GH#68264 when the other side is empty, the result of the two
+        # difference/union steps hits union's documented length-0
+        # exception and sorting is skipped, so a descending RangeIndex
+        # came back unsorted
+        left = pd.RangeIndex(-2, -5, -2)
+
+        result = left.symmetric_difference(pd.RangeIndex(0))
+        expected = pd.RangeIndex(-4, 0, 2)
+        tm.assert_index_equal(result, expected)
+
+        # reversed operand order
+        result = pd.RangeIndex(0).symmetric_difference(left)
+        tm.assert_index_equal(result, expected)
+
+        # non-empty other sanity: sorting path already worked
+        result = left.symmetric_difference(pd.RangeIndex(5, 6))
+        expected = pd.Index([-4, -2, 5])
+        tm.assert_index_equal(result, expected, exact=True)
+
 
 def assert_range_or_not_is_rangelike(index):
     """
